@@ -143,8 +143,8 @@ Trong `Documents/`:
 1. `Nhom1_DeCuong.docx` – Đề cương chi tiết đề tài.
 2. `Nhom1_KeHoach-8Tuan.docx` – Kế hoạch thực hiện 8 tuần.
 3. `Nhom1_SRS.docx` – Đặc tả yêu cầu phần mềm (SRS).
-4. `Nhom1_TaiLieuKyThuat_Tuan3-4.docx` – Tài liệu kỹ thuật đợt tuần 3–4.
-5. `Nhom1_BaoCaoTienDo_Tuan3-4.docx` – Báo cáo tiến độ tuần 3–4.
+4. `Nhom1_TaiLieuKyThuat_Tuan5.docx` – Tài liệu kỹ thuật đợt tuần 3–4.
+5. `Nhom1_BaoCaoTuan5.docx` – Báo cáo tiến độ tuần 3–4.
 
 Đã dựng từ ba PDF mẫu; TNR13, A4, bảng và thông tin sinh viên. Đã cập nhật đủ 5 thành viên, trưởng nhóm Trần Phan Đức Anh và mức độ Trung bình. Chỉ số thứ tự nhóm và ngày thực hiện chưa được cung cấp nên vẫn chờ xác nhận. Kế hoạch là dự kiến, không ghi giả tiến độ. Đã kiểm cấu trúc DOCX/CRC và nội dung; **chưa render Word để xác nhận phân trang**.
 
