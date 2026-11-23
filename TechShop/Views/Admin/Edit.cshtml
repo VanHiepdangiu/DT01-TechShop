@@ -1,0 +1,194 @@
+@model ProductForm
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Thêm sản phẩm" : "Sửa sản phẩm";
+    var cats = (List<Category>)ViewBag.Categories;
+    var brands = (List<Brand>)ViewBag.Brands;
+    var images = (List<ProductImage>)(ViewBag.Images ?? new List<ProductImage>());
+    var isNew = Model.Id == 0;
+}
+<div class="page-head">
+    <div>
+        <span class="eyebrow">QUẢN TRỊ · SẢN PHẨM</span>
+        <h1>@(isNew ? "Thêm sản phẩm mới" : "Sửa sản phẩm #" + Model.Id)</h1>
+    </div>
+    <a href="/Admin/Products" class="btn btn-outline">← Danh sách sản phẩm</a>
+</div>
+
+<section class="panel">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <form method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="RowVersion" type="hidden" />
+
+        <h2 class="h6 mb-2">1. Thông tin bắt buộc</h2>
+        <div class="field-grid">
+            <label>Tên sản phẩm <span class="text-danger">*</span>
+                <input asp-for="Name" class="form-control" required maxlength="150" placeholder="VD: iPhone 15 128GB" />
+                <small class="text-muted">5–150 ký tự</small>
+            </label>
+            <label>Danh mục <span class="text-danger">*</span>
+                <select asp-for="CategoryId" class="form-control">
+                    @foreach (var c in cats) { <option value="@c.Id">@c.Name</option> }
+                </select>
+            </label>
+            <label>Thương hiệu
+                <select asp-for="BrandId" class="form-control">
+                    <option value="">Chưa chọn</option>
+                    @foreach (var b in brands) { <option value="@b.Id">@b.Name</option> }
+                </select>
+            </label>
+            <label>Giá bán (₫) <span class="text-danger">*</span>
+                <input asp-for="Price" type="number" min="1" step="1000" class="form-control" required placeholder="15000000" />
+            </label>
+            <label>Giá khuyến mãi (₫)
+                <input asp-for="SalePrice" type="number" min="1" step="1000" class="form-control" placeholder="Để trống nếu không giảm giá" />
+                <small class="text-muted">Phải nhỏ hơn giá bán</small>
+            </label>
+            <label>Số lượng tồn kho <span class="text-danger">*</span>
+                <input asp-for="Stock" type="number" min="0" class="form-control" required placeholder="0" />
+            </label>
+        </div>
+
+        <h2 class="h6 mt-4 mb-2">2. Nội dung mô tả</h2>
+        <label>Mô tả sản phẩm
+            <textarea asp-for="Description" class="form-control" rows="4" maxlength="4000"
+                      placeholder="Mô tả ngắn về sản phẩm, tối đa 4000 ký tự"></textarea>
+        </label>
+
+        <div class="mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Thông số kỹ thuật</strong>
+                <button type="button" class="btn btn-outline btn-sm" id="add-spec">+ Thêm dòng thông số</button>
+            </div>
+            <div id="spec-rows">
+                @if (Model.Specs != null && Model.Specs.Count > 0)
+                {
+                    for (var k = 0; k < Model.Specs.Count; k++)
+                    {
+                        <div class="d-flex gap-2 mb-2 spec-row">
+                            <input name="Specs[@k].Name" value="@Model.Specs[k].Name" class="form-control" placeholder="Tên thông số (VD: RAM)" maxlength="80" />
+                            <input name="Specs[@k].Value" value="@Model.Specs[k].Value" class="form-control" placeholder="Giá trị (VD: 16 GB)" maxlength="200" />
+                            <button type="button" class="btn btn-outline btn-sm remove-spec" title="Xoá dòng">✕</button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="d-flex gap-2 mb-2 spec-row">
+                        <input name="Specs[0].Name" class="form-control" placeholder="Tên thông số (VD: RAM)" maxlength="80" />
+                        <input name="Specs[0].Value" class="form-control" placeholder="Giá trị (VD: 16 GB)" maxlength="200" />
+                        <button type="button" class="btn btn-outline btn-sm remove-spec" title="Xoá dòng">✕</button>
+                    </div>
+                }
+            </div>
+            <small class="text-muted">Tối đa 20 dòng. Có thể dán nhanh theo dạng <code>Tên=Giá trị</code> mỗi dòng một thông số vào ô bên dưới.</small>
+            <details class="mt-2">
+                <summary class="small text-muted">Dán nhanh nhiều thông số</summary>
+                <textarea asp-for="SpecsText" class="form-control mt-2" rows="4"
+                          placeholder="RAM=16 GB&#10;SSD=512 GB&#10;Màn hình=13.6 inch"></textarea>
+                <small class="text-muted">Nếu có dòng thông số ở trên, hệ thống ưu tiên dùng các dòng đó.</small>
+            </details>
+        </div>
+
+        <h2 class="h6 mt-4 mb-2">3. Hình ảnh</h2>
+        @if (images.Count > 0)
+        {
+            <p class="small text-muted mb-2">Ảnh hiện có (@images.Count ảnh). Tích “Xoá” để bỏ ảnh khi lưu; chọn “Ảnh chính” để đặt ảnh đại diện.</p>
+            <div class="d-flex gap-3 flex-wrap mb-3">
+                @foreach (var img in images)
+                {
+                    <div class="text-center" style="width:112px">
+                        <img src="@img.Url" alt="Ảnh sản phẩm" style="width:104px;height:104px;object-fit:cover;border-radius:8px;border:1px solid #dbe3ec" />
+                        <label class="small d-block mt-1" style="cursor:pointer">
+                            <input type="radio" name="mainImageId" value="@img.Id" @(img.IsMain ? "checked" : "") /> Ảnh chính
+                        </label>
+                        <label class="small d-block text-danger" style="cursor:pointer">
+                            <input type="checkbox" name="removeImageIds" value="@img.Id" /> Xoá
+                        </label>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="small text-muted">Sản phẩm chưa có ảnh — hệ thống sẽ dùng ảnh mặc định nếu không tải lên.</p>
+        }
+        <label>Thêm ảnh mới
+            <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple class="form-control" />
+            <small class="text-muted">Tối đa 5 ảnh mỗi lần, JPG/PNG/WebP, mỗi ảnh dưới 2 MB. Ảnh đầu tiên là ảnh chính nếu sản phẩm chưa có ảnh.</small>
+        </label>
+
+        <h2 class="h6 mt-4 mb-2">4. Trạng thái</h2>
+        <label class="d-flex gap-2 align-items-center">
+            <input asp-for="IsActive" style="width:18px;height:18px" />
+            <span>Đang bán (bỏ chọn để ẩn khỏi cửa hàng, không xoá dữ liệu)</span>
+        </label>
+
+        <div class="mt-4 d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary" name="action" value="save">@(isNew ? "Thêm sản phẩm" : "Lưu thay đổi")</button>
+            @if (isNew)
+            {
+                <button class="btn btn-outline" name="action" value="saveNew" title="Lưu sản phẩm này và mở biểu mẫu trống, giữ danh mục/hãng/thông số">
+                    Lưu &amp; thêm tiếp
+                </button>
+            }
+            <a href="/Admin/Products" class="btn btn-outline">Huỷ</a>
+        </div>
+        <p class="small text-muted mt-3 mb-0">
+            Lưu ý: nếu sản phẩm vừa được người khác sửa hoặc vừa có người mua, hệ thống sẽ không ghi đè
+            mà yêu cầu mở lại biểu mẫu (kiểm soát bằng RowVersion).
+        </p>
+    </form>
+</section>
+
+@section Scripts {
+<script>
+(function () {
+    var box = document.getElementById('spec-rows');
+    var addBtn = document.getElementById('add-spec');
+
+    function reindex() {
+        var rows = box.querySelectorAll('.spec-row');
+        rows.forEach(function (row, i) {
+            row.querySelectorAll('input').forEach(function (inp) {
+                var base = inp.getAttribute('data-base');
+                if (!base) { base = inp.name.replace(/\[\d+\]/, '[0]'); inp.setAttribute('data-base', base); }
+                inp.name = base.replace('[0]', '[' + i + ']');
+            });
+        });
+    }
+
+    function wire(btn) {
+        btn.addEventListener('click', function () {
+            var row = btn.closest('.spec-row');
+            row.remove();
+            reindex();
+        });
+    }
+    box.querySelectorAll('.remove-spec').forEach(wire);
+
+    addBtn.addEventListener('click', function () {
+        if (box.querySelectorAll('.spec-row').length >= 20) { alert('Tối đa 20 dòng thông số.'); return; }
+        var row = document.createElement('div');
+        row.className = 'd-flex gap-2 mb-2 spec-row';
+        row.innerHTML = '<input name="Specs[0].Name" class="form-control" placeholder="Tên thông số (VD: Pin)" maxlength="80" />' +
+                        '<input name="Specs[0].Value" class="form-control" placeholder="Giá trị (VD: 5000 mAh)" maxlength="200" />' +
+                        '<button type="button" class="btn btn-outline btn-sm remove-spec" title="Xoá dòng">✕</button>';
+        box.appendChild(row);
+        wire(row.querySelector('.remove-spec'));
+        reindex();
+        row.querySelector('input').focus();
+    });
+
+    // Cảnh báo khi tích xoá ảnh chính
+    document.querySelectorAll('input[name="removeImageIds"]').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            var row = cb.closest('div');
+            var radio = row.querySelector('input[name="mainImageId"]');
+            if (cb.checked && radio && radio.checked) radio.checked = false;
+        });
+    });
+})();
+</script>
+}

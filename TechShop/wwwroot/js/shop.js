@@ -1,0 +1,14 @@
+(function(){'use strict';
+const csrf=()=>document.querySelector('meta[name="csrf-token"]')?.content||'';
+async function cart(id,quantity,add,reload){try{const r=await fetch('/Cart/Update',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRF-TOKEN':csrf()},body:new URLSearchParams({productId:id,quantity:quantity,add:String(add)})});if(r.redirected){location.href=r.url;return;}const v=await r.json();if(!r.ok)throw new Error(v.message||'Không thể cập nhật giỏ hàng.');const n=document.getElementById('cart-count');if(n)n.textContent=v.count;if(reload)location.reload();else{const d=document.createElement('div');d.className='notice';d.setAttribute('role','status');d.textContent=v.message;document.querySelector('main').prepend(d);setTimeout(()=>d.remove(),2500);}}catch(e){alert(e.message);}}
+document.querySelectorAll('.cart-add').forEach(x=>x.addEventListener('click',()=>cart(x.dataset.product,1,true,false)));
+document.querySelectorAll('.cart-qty').forEach(x=>x.addEventListener('change',()=>cart(x.dataset.product,Number(x.value),false,true)));
+document.querySelectorAll('.cart-remove').forEach(x=>x.addEventListener('click',()=>cart(x.dataset.product,0,false,true)));
+document.querySelectorAll('[data-auth]').forEach(x=>x.addEventListener('click',()=>{document.querySelectorAll('.auth-pane').forEach(y=>y.classList.toggle('active',y.id==='auth-'+x.dataset.auth));document.querySelectorAll('[data-auth]').forEach(y=>{y.classList.toggle('btn-primary',y===x);y.classList.toggle('btn-outline',y!==x);});}));
+let picks=[];try{picks=JSON.parse(sessionStorage.getItem('techshop-compare')||'[]');if(!Array.isArray(picks))picks=[];}catch{picks=[];}
+function updateCompare(){document.querySelectorAll('#compare-link').forEach(a=>{a.href='/Products/Compare?ids='+picks.join(',');a.textContent='So sánh đã chọn ('+picks.length+'/3)';});sessionStorage.setItem('techshop-compare',JSON.stringify(picks));}
+document.querySelectorAll('.compare-pick').forEach(x=>{x.checked=picks.includes(x.value);x.addEventListener('change',()=>{if(x.checked){if(picks.length>=3){x.checked=false;alert('Chỉ so sánh tối đa 3 sản phẩm.');return;}picks.push(x.value);}else picks=picks.filter(a=>a!==x.value);updateCompare();});});updateCompare();
+document.querySelectorAll('form[data-confirm]').forEach(f=>f.addEventListener('submit',e=>{if(!confirm(f.dataset.confirm))e.preventDefault();}));
+document.getElementById('address-picker')?.addEventListener('change',e=>{const o=e.target.selectedOptions[0];if(o.dataset.address){document.getElementById('FullName').value=o.dataset.name;document.getElementById('Phone').value=o.dataset.phone;document.getElementById('Address').value=o.dataset.address;}});
+document.getElementById('checkout-form')?.addEventListener('submit',e=>{if(e.target.checkValidity()){const b=document.getElementById('place-order');b.disabled=true;b.textContent='Đang xác nhận…';}});
+})();

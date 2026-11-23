@@ -1,0 +1,3 @@
+@model List<ReturnRequest>
+@{ViewData["Title"]="Yêu cầu đổi trả";}
+<h1>Yêu cầu đổi trả</h1><section class="panel table-wrap"><table class="table"><thead><tr><th>Đơn</th><th>Ngày yêu cầu</th><th>Lý do</th><th>Trạng thái</th><th></th></tr></thead><tbody>@foreach(var r in Model){<tr><td>#@r.OrderId</td><td>@r.CreatedAt.ToString("dd/MM/yyyy")</td><td>@r.Reason</td><td>@r.Status</td><td><a href="/Orders/Details/@r.OrderId">Xem đơn / Duyệt trả hàng</a></td></tr>}</tbody></table></section>

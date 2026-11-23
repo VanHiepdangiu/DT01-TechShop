@@ -1,0 +1,292 @@
+{
+  "base": "local isolated demo",
+  "passed": 57,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "Catalog access follows configured login gate",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Anonymous API report blocked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Profile protected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Combined login/register screen",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Login without CSRF rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Weak registration rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Strong registration accepted",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Login test-1e450d2748@example.test",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer page /",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer page /Products",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer page /Products?q=ASUS&sort=priceAsc",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer page /Products?categoryId=2&min=5000000&max=30000000",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer page /Products/Details/1",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer page /Products/Compare?ids=1,2,3",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer page /Cart",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer page /Orders",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer page /Account/Profile",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Customer admin forbidden",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Customer reports forbidden",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AJAX cart add",
+      "pass": true,
+      "detail": "{\"message\":\"\\u0110\\u00E3 c\\u1EADp nh\\u1EADt gi\\u1ECF h\\u00E0ng.\",\"count\":1,\"quantity\":1}"
+    },
+    {
+      "name": "Negative cart quantity rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Checkout screen populated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Checkout redirects to committed order",
+      "pass": true,
+      "detail": "http://127.0.0.1:5094/Orders/Details/1"
+    },
+    {
+      "name": "Server ignores tampered client amount",
+      "pass": true,
+      "detail": "query/dist/jquery.min.js\"></script><script src=\"/lib/bootstrap/dist/js/bootstrap.bundle.min.js\"></script><script src=\"/js/shop.js?v=yXX9qUb03oQUWpjpRdm5fnYfveCgzBBGCy4BL08gHfs\"></script></body></html>"
+    },
+    {
+      "name": "Invoice available to owner",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Login customer@techshop.local",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Other customer order IDOR blocked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Owner can cancel New order",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Repeat cancel rejected safely",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Login admin@techshop.local",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /Admin",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /Admin/Products",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /Admin/Edit",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /Admin/Edit/1",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /Admin/Settings",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /Admin/Users",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /Admin/Returns",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /api/products",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /api/reports/revenue",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /api/reports/top-products",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /api/reports/low-stock",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /api/orders",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /swagger/v1/swagger.json",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /lib/react/react.production.min.js",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /js/admin.js",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Admin resource /css/shop.css",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "React root and local scripts",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "API status write without CSRF fails",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "API stale rowversion conflict",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Admin product create",
+      "pass": true,
+      "detail": "http://127.0.0.1:5094/Admin/Products"
+    },
+    {
+      "name": "Admin product edit",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Admin product soft delete",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Login customer@techshop.local",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Login test-1e450d2748@example.test",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "Two HTTP buyers last unit: exactly one order",
+      "pass": true,
+      "detail": "[{'status': 200, 'url': 'http://127.0.0.1:5094/Orders/Details/2'}, {'status': 409, 'url': 'http://127.0.0.1:5094/Checkout'}]"
+    },
+    {
+      "name": "Forged VNPay callback rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Private outbox not served",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

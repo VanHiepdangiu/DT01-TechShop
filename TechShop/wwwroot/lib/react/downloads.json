@@ -1,0 +1,18 @@
+[
+  {
+    "file": "react.production.min.js",
+    "url": "https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js",
+    "httpStatus": 200,
+    "bytes": 10751,
+    "sha256": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd",
+    "verifiedAtUtc": "2026-10-27T10:34:59.132243+00:00"
+  },
+  {
+    "file": "react-dom.production.min.js",
+    "url": "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js",
+    "httpStatus": 200,
+    "bytes": 131835,
+    "sha256": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d",
+    "verifiedAtUtc": "2026-10-27T10:34:59.218928+00:00"
+  }
+]

@@ -1,0 +1,46 @@
+{
+  "passed": 10,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "Fresh COD workflow order created",
+      "pass": true
+    },
+    {
+      "name": "Admin API legal transition Packing",
+      "pass": true
+    },
+    {
+      "name": "Admin API legal transition Shipping",
+      "pass": true
+    },
+    {
+      "name": "Admin API legal transition Completed",
+      "pass": true
+    },
+    {
+      "name": "API rejects previously used rowversion",
+      "pass": true
+    },
+    {
+      "name": "Completed order contributes real revenue",
+      "pass": true
+    },
+    {
+      "name": "Top products aggregates completed items",
+      "pass": true
+    },
+    {
+      "name": "Customer requests return after completion",
+      "pass": true
+    },
+    {
+      "name": "Admin return restores inventory atomically",
+      "pass": true
+    },
+    {
+      "name": "Returned order removed from completed revenue",
+      "pass": true
+    }
+  ]
+}

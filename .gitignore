@@ -1,0 +1,15 @@
+bin/
+obj/
+.vs/
+TestResults/
+*.log
+*.db
+*.db-shm
+*.db-wal
+core
+core.*
+TechShop/App_Data/Outbox/
+TechShop/wwwroot/uploads/
+TechShop/appsettings.Local.json
+node_modules/
+dist/
