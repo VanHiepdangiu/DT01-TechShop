@@ -1,0 +1,159 @@
+@model List<Product>
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+    var cats = (List<Category>)ViewBag.Categories;
+    var brands = (List<Brand>)ViewBag.Brands;
+    var q = ViewBag.Q as string;
+    var status = ViewBag.Status as string;
+    int? catId = ViewBag.CategoryId;
+    int? brandId = ViewBag.BrandId;
+    var lastCreated = TempData["LastCreated"] as string;
+    string Img(Product p) => p.Images != null && p.Images.Count > 0
+        ? (p.Images.FirstOrDefault(i => i.IsMain) ?? p.Images.First()).Url
+        : "/images/laptop.svg";
+}
+<div class="page-head">
+    <div>
+        <span class="eyebrow">QUẢN TRỊ · KHO SẢN PHẨM</span>
+        <h1>Quản lý sản phẩm</h1>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="/Admin/ExportProducts" class="btn btn-outline">Xuất Excel</a>
+        <a href="/Admin/ProductManager" class="btn btn-outline">Làm mới</a>
+        <a href="/Admin/Create" class="btn btn-primary btn-lg add-product">+ Thêm mới sản phẩm</a>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(lastCreated))
+{
+    <div class="alert alert-success d-flex justify-content-between align-items-center">
+        <span>Đã thêm sản phẩm <strong>@lastCreated</strong> vào kho.</span>
+        <span class="d-flex gap-2">
+            <a href="/Admin/Create" class="btn btn-outline btn-sm">Thêm sản phẩm khác</a>
+            <a href="/Products" class="btn btn-outline btn-sm">Xem cửa hàng</a>
+        </span>
+    </div>
+}
+
+<div class="stat-grid mb-3">
+    <div class="panel stat"><span class="stat-label">Tổng sản phẩm</span><strong class="stat-value">@ViewBag.StatTotal</strong></div>
+    <div class="panel stat"><span class="stat-label">Đang bán</span><strong class="stat-value text-success">@ViewBag.StatActive</strong></div>
+    <div class="panel stat"><span class="stat-label">Đang ẩn</span><strong class="stat-value text-muted">@ViewBag.StatHidden</strong></div>
+    <div class="panel stat"><span class="stat-label">Sắp hết (≤5)</span><strong class="stat-value text-warning">@ViewBag.StatLow</strong></div>
+    <div class="panel stat"><span class="stat-label">Hết hàng</span><strong class="stat-value text-danger">@ViewBag.StatOut</strong></div>
+</div>
+
+<section class="panel mb-3">
+    <form method="get" action="/Admin/ProductManager" class="filter-row">
+        <input name="q" value="@q" class="form-control" placeholder="Tìm theo tên sản phẩm…" />
+        <select name="categoryId" class="form-control">
+            <option value="">Tất cả danh mục</option>
+            @foreach (var c in cats) { <option value="@c.Id" selected="@(catId == c.Id)">@c.Name</option> }
+        </select>
+        <select name="brandId" class="form-control">
+            <option value="">Tất cả thương hiệu</option>
+            @foreach (var b in brands) { <option value="@b.Id" selected="@(brandId == b.Id)">@b.Name</option> }
+        </select>
+        <select name="status" class="form-control">
+            <option value="">Mọi trạng thái</option>
+            <option value="active" selected="@(status == "active")">Đang bán</option>
+            <option value="hidden" selected="@(status == "hidden")">Đang ẩn</option>
+            <option value="low" selected="@(status == "low")">Sắp hết hàng</option>
+        </select>
+        <button class="btn btn-primary">Lọc</button>
+        <a href="/Admin/ProductManager" class="btn btn-outline">Xoá lọc</a>
+    </form>
+</section>
+
+<section class="panel mb-3">
+    <h2 class="h6">Nhập sản phẩm từ CSV</h2>
+    <form action="/Admin/Import" method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-center flex-wrap">
+        @Html.AntiForgeryToken()
+        <input type="file" name="file" accept=".csv" class="form-control" style="max-width:320px" required />
+        <button class="btn btn-outline">Nhập CSV</button>
+        <span class="text-muted small">Cột: Tên, Giá, Giá KM (trống được), Tồn, Danh mục, Hãng (trống được), Mô tả. UTF-8, tối đa 500 dòng.</span>
+    </form>
+</section>
+
+@if (Model.Count == 0)
+{
+    <section class="panel">
+        <div class="empty-state">
+            <h2>Chưa có sản phẩm nào khớp bộ lọc</h2>
+            <p class="text-muted">Bấm nút bên dưới để thêm sản phẩm đầu tiên.</p>
+            <a href="/Admin/Create" class="btn btn-primary btn-lg">+ Thêm mới sản phẩm</a>
+        </div>
+    </section>
+}
+else
+{
+    <div class="product-grid">
+        @foreach (var p in Model)
+        {
+            <article class="panel product-card">
+                <div class="product-thumb">
+                    <img src="@Img(p)" alt="@p.Name" />
+                    @if (!p.IsActive) { <span class="badge-float badge-muted">Đang ẩn</span> }
+                    else if (p.Stock == 0) { <span class="badge-float badge-danger">Hết hàng</span> }
+                    else if (p.Stock <= 5) { <span class="badge-float badge-warning">Còn @p.Stock</span> }
+                </div>
+                <div class="product-body">
+                    <span class="product-cat">@(p.Category?.Name ?? "—")@(p.Brand != null ? " · " + p.Brand.Name : "")</span>
+                    <h3 class="product-name"><a href="/Admin/Edit/@p.Id">@p.Name</a></h3>
+                    <div class="product-price">
+                        @if (p.SalePrice.HasValue && p.SalePrice < p.Price)
+                        {
+                            <strong>@p.SalePrice.Value.ToString("N0") ₫</strong>
+                            <s class="text-muted small">@p.Price.ToString("N0") ₫</s>
+                        }
+                        else
+                        {
+                            <strong>@p.Price.ToString("N0") ₫</strong>
+                        }
+                    </div>
+                    <div class="product-meta">Mã #@p.Id · Tồn: @p.Stock</div>
+                    <div class="product-actions">
+                        <a href="/Admin/Edit/@p.Id" class="btn btn-outline btn-sm">Sửa</a>
+                        <a href="/Products/Details/@p.Id" class="btn btn-outline btn-sm" target="_blank">Xem</a>
+                        <form action="/Admin/Hide" method="post" class="d-inline" data-confirm="Ẩn sản phẩm này khỏi cửa hàng?">
+                            @Html.AntiForgeryToken()
+                            <input name="id" type="hidden" value="@p.Id" />
+                            <button class="btn btn-outline btn-sm">@(p.IsActive ? "Ẩn" : "Hiện")</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+}
+
+<style>
+    .stat-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .75rem; }
+    .stat { display: flex; flex-direction: column; gap: .15rem; padding: .85rem 1rem; }
+    .stat-label { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: #64748b; }
+    .stat-value { font-size: 1.5rem; line-height: 1.1; }
+    .filter-row { display: grid; grid-template-columns: 2fr 1.2fr 1.2fr 1.1fr auto auto; gap: .5rem; align-items: center; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(228px, 1fr)); gap: .9rem; }
+    .product-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .product-thumb { position: relative; aspect-ratio: 4 / 3; background: #f1f5f9; }
+    .product-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .badge-float { position: absolute; top: .5rem; left: .5rem; font-size: .72rem; padding: .18rem .5rem; border-radius: 999px; color: #fff; }
+    .badge-danger { background: #dc2626; }
+    .badge-warning { background: #d97706; }
+    .badge-muted { background: #64748b; }
+    .product-body { padding: .75rem .85rem .85rem; display: flex; flex-direction: column; gap: .25rem; flex: 1; }
+    .product-cat { font-size: .74rem; color: #64748b; text-transform: uppercase; letter-spacing: .03em; }
+    .product-name { font-size: .95rem; line-height: 1.3; margin: 0; min-height: 2.4em; }
+    .product-name a { color: inherit; text-decoration: none; }
+    .product-name a:hover { color: #1d4ed8; }
+    .product-price { display: flex; align-items: baseline; gap: .4rem; }
+    .product-price strong { color: #b91c1c; font-size: 1rem; }
+    .product-meta { font-size: .76rem; color: #64748b; }
+    .product-actions { margin-top: auto; padding-top: .5rem; display: flex; gap: .35rem; flex-wrap: wrap; }
+    .empty-state { text-align: center; padding: 2.5rem 1rem; }
+    .add-product { box-shadow: 0 6px 16px rgba(29, 78, 216, .25); font-weight: 700; }
+    @@media (max-width: 900px) {
+        .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .filter-row { grid-template-columns: 1fr 1fr; }
+    }
+</style>

@@ -60,7 +60,7 @@ files = {"photos": ("anh.png", png, "image/png")}
 r = admin.post(BASE + "/Admin/Edit", data=data, files=files, allow_redirects=True, timeout=60)
 h = page(r)
 ck("POST thêm sản phẩm trả 200", r.status_code == 200, r.status_code)
-ck("Thông báo 'Đã lưu sản phẩm'", "Đã lưu sản phẩm" in h, h[:200])
+ck("Thông báo đã thêm sản phẩm", ("Đã thêm sản phẩm" in h) or ("Đã lưu sản phẩm" in h), h[:200])
 ck("Sản phẩm mới có trong danh sách", name in h)
 
 # 3. Kiểm tra dữ liệu thật qua API catalog và trang chi tiết

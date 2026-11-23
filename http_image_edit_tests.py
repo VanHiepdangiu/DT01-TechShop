@@ -41,7 +41,7 @@ data = {"__RequestVerificationToken": tok(r), "Id": "0", "Name": name, "Price": 
 r = a.post(BASE + "/Admin/Edit", data=data,
            files=[("photos", ("a1.png", PNG, "image/png")), ("photos", ("a2.png", PNG, "image/png"))],
            allow_redirects=True, timeout=60)
-ck("Tạo sản phẩm 2 ảnh + 2 thông số", "Đã lưu sản phẩm" in page(r), page(r)[:150])
+ck("Tạo sản phẩm 2 ảnh + 2 thông số", ("Đã thêm sản phẩm" in page(r)) or ("Đã lưu sản phẩm" in page(r)), page(r)[:150])
 
 # tìm id
 pid = None
@@ -74,7 +74,7 @@ if pid:
              "mainImageId": ids[0], "removeImageIds": ids[1]}
     r = a.post(BASE + "/Admin/Edit", data=data2,
                files=[("photos", ("a3.png", PNG, "image/png"))], allow_redirects=True, timeout=60)
-    ck("Lưu thay đổi thành công", "Đã lưu sản phẩm" in page(r), page(r)[:200])
+    ck("Lưu thay đổi thành công", ("Đã lưu thay đổi" in page(r)) or ("Đã lưu sản phẩm" in page(r)), page(r)[:200])
 
     # 4. Kiểm tra kết quả: còn 2 ảnh (1 xoá, 1 thêm), thông số đổi
     r = a.get(BASE + f"/Admin/Edit/{pid}", timeout=30)
@@ -103,7 +103,7 @@ if pid:
              "Specs[0].Name": "RAM", "Specs[0].Value": "16 GB"}
     r = a.post(BASE + "/Admin/Edit", data=data3,
                files=[("removeImageIds", (None, i)) for i in ids3], allow_redirects=True, timeout=60)
-    ck("Xoá hết ảnh vẫn lưu được", "Đã lưu sản phẩm" in page(r), page(r)[:200])
+    ck("Xoá hết ảnh vẫn lưu được", ("Đã lưu thay đổi" in page(r)) or ("Đã lưu sản phẩm" in page(r)), page(r)[:200])
     r2 = a.get(BASE + f"/Products/Details/{pid}", timeout=30)
     ck("Sản phẩm vẫn hiển thị (ảnh mặc định)", r2.status_code == 200)
 

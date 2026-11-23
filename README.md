@@ -46,6 +46,12 @@ Website học tập ASP.NET Core MVC (.NET 8), ASP.NET Core Identity, EF Core Co
 4. Bấm **Thêm sản phẩm** → hệ thống lưu và quay về danh sách, sản phẩm xuất hiện ngay trên trang khách hàng.
 5. Muốn thêm hàng loạt: dùng **Nhập CSV** ở trang Quản lý sản phẩm (tối đa 500 dòng/lần).
 
+### Trang Quản lý sản phẩm (/Admin/ProductManager)
+Trang quản trị dạng thẻ: 5 ô thống kê (tổng, đang bán, đang ẩn, sắp hết, hết hàng), lọc theo
+tên / danh mục / thương hiệu / trạng thái, mỗi thẻ có ảnh, giá và nút Sửa – Xem – Ẩn.
+Nút **"+ Thêm mới sản phẩm"** mở trang thêm riêng `/Admin/Create` (không lẫn với form sửa);
+lưu xong quay lại trang này kèm thông báo và nút *Thêm sản phẩm khác*.
+
 ### Sửa ảnh và thông số của sản phẩm đã có
 1. Vào **Quản lý sản phẩm → Sửa** ở dòng sản phẩm cần chỉnh.
 2. **Ảnh**: mỗi ảnh hiện có kèm 2 lựa chọn — *Ảnh chính* (chọn 1 ảnh) và *Xoá* (tích để bỏ khi lưu).

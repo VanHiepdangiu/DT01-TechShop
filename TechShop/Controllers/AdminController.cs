@@ -43,7 +43,53 @@ public class AdminController(ShopDbContext db,UserManager<ShopUser> users,IWebHo
   var bytes=XlsxWriter.Build("DoanhThu",new[]{"Mã đơn","Ngày hoàn tất","Khách hàng","Thanh toán","Số lượng","Tổng tiền"},rows);
   return File(bytes,"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",$"TechShop-DoanhThu-{start:yyyyMMdd}-{end.AddDays(-1):yyyyMMdd}.xlsx");
  }
- [Authorize(Roles="Admin")]public async Task<IActionResult>Products(string? q){var x=db.Products.Include(x=>x.Category).AsQueryable();if(!string.IsNullOrWhiteSpace(q))x=x.Where(x=>x.Name.Contains(q));return View(await x.OrderByDescending(x=>x.Id).Take(200).ToListAsync());}
+ [Authorize(Roles="Admin")]public async Task<IActionResult>Products(string? q,int? categoryId,int? brandId,string? status)
+ {
+  var x=db.Products.Include(p=>p.Category).Include(p=>p.Brand).AsQueryable();
+  if(!string.IsNullOrWhiteSpace(q))x=x.Where(p=>p.Name.Contains(q));
+  if(categoryId.HasValue)x=x.Where(p=>p.CategoryId==categoryId.Value);
+  if(brandId.HasValue)x=x.Where(p=>p.BrandId==brandId.Value);
+  if(status=="hidden")x=x.Where(p=>!p.IsActive);
+  else if(status=="active")x=x.Where(p=>p.IsActive);
+  else if(status=="low")x=x.Where(p=>p.Stock<=5);
+  ViewBag.Total=await x.CountAsync();
+  ViewBag.Categories=await db.Categories.AsNoTracking().OrderBy(c=>c.Name).ToListAsync();
+  ViewBag.Brands=await db.Brands.AsNoTracking().OrderBy(b=>b.Name).ToListAsync();
+  ViewBag.Q=q;ViewBag.CategoryId=categoryId;ViewBag.BrandId=brandId;ViewBag.Status=status;
+  return View(await x.OrderByDescending(p=>p.Id).Take(200).ToListAsync());
+ }
+ // Trang quản lý sản phẩm dạng thẻ + nút "Thêm mới sản phẩm" nổi bật (tách khỏi form sửa).
+ [Authorize(Roles="Admin")]public async Task<IActionResult>ProductManager(string? q,int? categoryId,int? brandId,string? status)
+ {
+  var x=db.Products.Include(p=>p.Category).Include(p=>p.Brand).Include(p=>p.Images).AsQueryable();
+  if(!string.IsNullOrWhiteSpace(q))x=x.Where(p=>p.Name.Contains(q));
+  if(categoryId.HasValue)x=x.Where(p=>p.CategoryId==categoryId.Value);
+  if(brandId.HasValue)x=x.Where(p=>p.BrandId==brandId.Value);
+  if(status=="hidden")x=x.Where(p=>!p.IsActive);
+  else if(status=="active")x=x.Where(p=>p.IsActive);
+  else if(status=="low")x=x.Where(p=>p.Stock<=5);
+  ViewBag.Categories=await db.Categories.AsNoTracking().OrderBy(c=>c.Name).ToListAsync();
+  ViewBag.Brands=await db.Brands.AsNoTracking().OrderBy(b=>b.Name).ToListAsync();
+  ViewBag.Q=q;ViewBag.CategoryId=categoryId;ViewBag.BrandId=brandId;ViewBag.Status=status;
+  ViewBag.StatTotal=await db.Products.CountAsync();
+  ViewBag.StatActive=await db.Products.CountAsync(p=>p.IsActive);
+  ViewBag.StatHidden=await db.Products.CountAsync(p=>!p.IsActive);
+  ViewBag.StatLow=await db.Products.CountAsync(p=>p.Stock<=5);
+  ViewBag.StatOut=await db.Products.CountAsync(p=>p.Stock==0);
+  return View(await x.OrderByDescending(p=>p.Id).Take(120).ToListAsync());
+ }
+ // Trang riêng chỉ để THÊM MỚI sản phẩm (không lẫn với sửa).
+ [Authorize(Roles="Admin")]public async Task<IActionResult>Create()
+ {
+  await Setup();
+  ViewBag.Images=new List<ProductImage>();
+  ViewBag.LastCreated=TempData["LastCreated"];
+  return View("Edit",new ProductForm{IsActive=true,Stock=0});
+ }
+ // Nhận biểu mẫu THÊM MỚI gửi từ trang /Admin/Create.
+ [Authorize(Roles="Admin"),HttpPost,ValidateAntiForgeryToken]
+ public Task<IActionResult>Create(ProductForm m,List<IFormFile>? photos,List<int>? removeImageIds,int? mainImageId,string? action)
+ {m.Id=0;return Edit(m,photos,removeImageIds,mainImageId,action);}
  [Authorize(Roles="Admin")]public async Task<IActionResult>Edit(int? id)
  {await Setup();if(!id.HasValue)return View(new ProductForm());ViewBag.Images=await db.ProductImages.AsNoTracking().Where(i=>i.ProductId==id.Value).OrderByDescending(i=>i.IsMain).ThenBy(i=>i.Id).ToListAsync();var x=await db.Products.Include(x=>x.Specs).Include(x=>x.Images).SingleOrDefaultAsync(x=>x.Id==id);return x==null?NotFound():View(new ProductForm{Id=x.Id,Name=x.Name,Price=x.Price,SalePrice=x.SalePrice,Stock=x.Stock,CategoryId=x.CategoryId,BrandId=x.BrandId,IsActive=x.IsActive,Description=x.Description,RowVersion=Convert.ToBase64String(x.RowVersion),SpecsText=string.Join("\n",x.Specs.Select(s=>s.SpecName+"="+s.SpecValue)),Specs=x.Specs.Select(s=>new SpecInput{Name=s.SpecName,Value=s.SpecValue}).ToList(),MainImageId=x.Images.OrderByDescending(i=>i.IsMain).ThenBy(i=>i.Id).Select(i=>i.Id).FirstOrDefault()==0?null:x.Images.OrderByDescending(i=>i.IsMain).ThenBy(i=>i.Id).Select(i=>i.Id).FirstOrDefault()});}
  [Authorize(Roles="Admin"),HttpPost,ValidateAntiForgeryToken]public async Task<IActionResult>Edit(ProductForm m,List<IFormFile>? photos,List<int>? removeImageIds,int? mainImageId,string? action)
@@ -88,7 +134,9 @@ public class AdminController(ShopDbContext db,UserManager<ShopUser> users,IWebHo
   catch(DbUpdateConcurrencyException){ModelState.AddModelError("","Sản phẩm vừa thay đổi do giao dịch khác. Vui lòng mở lại form, không ghi đè tồn kho.");await Setup();Response.StatusCode=409;return View(m);}
   if(action=="saveNew"){var b=await BuildNewFromAsync(p);TempData["Message"]=$"Đã lưu sản phẩm. Biểu mẫu đã sẵn sàng cho sản phẩm tiếp theo (đã sao chép danh mục, hãng, thông số).";return View("Edit",b);}
   foreach(var fp in orphanFiles)ImageFiles.DeletePhysical(fp,env.WebRootPath);
-  TempData["Message"]="Đã lưu sản phẩm.";return RedirectToAction(nameof(Products));
+  TempData["Message"]=m.Id==0?$"Đã thêm sản phẩm “{p.Name}”.":$"Đã lưu thay đổi sản phẩm “{p.Name}”.";
+  TempData["LastCreated"]=m.Id==0?p.Name:null;
+  return RedirectToAction(nameof(ProductManager));
  }
  // Chuẩn bị biểu mẫu trống để THÊM TIẾP, giữ lại danh mục/hãng/thông số vừa nhập.
  async Task<ProductForm> BuildNewFromAsync(Product saved)

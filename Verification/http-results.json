@@ -39,7 +39,7 @@
       "detail": ""
     },
     {
-      "name": "Login test-1e450d2748@example.test",
+      "name": "Login test-918f9f2818@example.test",
       "pass": true,
       "detail": "200"
     },
@@ -116,7 +116,7 @@
     {
       "name": "Checkout redirects to committed order",
       "pass": true,
-      "detail": "http://127.0.0.1:5094/Orders/Details/1"
+      "detail": "http://127.0.0.1:5099/Orders/Details/1"
     },
     {
       "name": "Server ignores tampered client amount",
@@ -251,12 +251,12 @@
     {
       "name": "Admin product create",
       "pass": true,
-      "detail": "http://127.0.0.1:5094/Admin/Products"
+      "detail": "http://127.0.0.1:5099/Admin/ProductManager"
     },
     {
       "name": "Admin product edit",
       "pass": true,
-      "detail": ""
+      "detail": "http://127.0.0.1:5099/Admin/ProductManager"
     },
     {
       "name": "Admin product soft delete",
@@ -269,14 +269,14 @@
       "detail": "200"
     },
     {
-      "name": "Login test-1e450d2748@example.test",
+      "name": "Login test-918f9f2818@example.test",
       "pass": true,
       "detail": "200"
     },
     {
       "name": "Two HTTP buyers last unit: exactly one order",
       "pass": true,
-      "detail": "[{'status': 200, 'url': 'http://127.0.0.1:5094/Orders/Details/2'}, {'status': 409, 'url': 'http://127.0.0.1:5094/Checkout'}]"
+      "detail": "[{'status': 200, 'url': 'http://127.0.0.1:5099/Orders/Details/2'}, {'status': 409, 'url': 'http://127.0.0.1:5099/Checkout'}]"
     },
     {
       "name": "Forged VNPay callback rejected",

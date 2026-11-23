@@ -11,12 +11,21 @@
         <span class="eyebrow">QUẢN TRỊ · SẢN PHẨM</span>
         <h1>@(isNew ? "Thêm sản phẩm mới" : "Sửa sản phẩm #" + Model.Id)</h1>
     </div>
-    <a href="/Admin/Products" class="btn btn-outline">← Danh sách sản phẩm</a>
+    <a href="/Admin/ProductManager" class="btn btn-outline">← Quản lý sản phẩm</a>
 </div>
+
+@if (isNew)
+{
+    <div class="alert alert-info">
+        Bạn đang ở <strong>chế độ THÊM MỚI</strong>. Điền thông tin rồi bấm <em>Thêm sản phẩm</em>.
+        Nếu vừa thêm xong một sản phẩm, dùng nút <em>Thêm sản phẩm khác</em> để quay lại trang này.
+    </div>
+}
 
 <section class="panel">
     <div asp-validation-summary="All" class="text-danger"></div>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data"
+          action="@(Model.Id == 0 ? "/Admin/Create" : "/Admin/Edit")">
         @Html.AntiForgeryToken()
         <input asp-for="Id" type="hidden" />
         <input asp-for="RowVersion" type="hidden" />
@@ -126,14 +135,14 @@
         </label>
 
         <div class="mt-4 d-flex gap-2 flex-wrap">
-            <button class="btn btn-primary" name="action" value="save">@(isNew ? "Thêm sản phẩm" : "Lưu thay đổi")</button>
+            <button class="btn btn-primary btn-lg" name="action" value="save">@(isNew ? "Thêm sản phẩm" : "Lưu thay đổi")</button>
             @if (isNew)
             {
                 <button class="btn btn-outline" name="action" value="saveNew" title="Lưu sản phẩm này và mở biểu mẫu trống, giữ danh mục/hãng/thông số">
                     Lưu &amp; thêm tiếp
                 </button>
             }
-            <a href="/Admin/Products" class="btn btn-outline">Huỷ</a>
+            <a href="/Admin/ProductManager" class="btn btn-outline">Huỷ</a>
         </div>
         <p class="small text-muted mt-3 mb-0">
             Lưu ý: nếu sản phẩm vừa được người khác sửa hoặc vừa có người mua, hệ thống sẽ không ghi đè

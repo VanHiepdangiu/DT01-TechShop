@@ -53,11 +53,11 @@ if oid:
  ck('API stale rowversion conflict',admin.put(BASE+f'/api/orders/{oid}/status',headers={'X-CSRF-TOKEN':token(r.text)},json={'status':'Packing','rowVersion':'x'}).status_code==409)
 # Admin product create/edit and concurrency-aware update.
 r=get(admin,'/Admin/Edit');form={'__RequestVerificationToken':token(r.text),'Id':0,'RowVersion':'','Name':'HTTP TEST Product','Price':'100000','Stock':'3','CategoryId':1,'BrandId':1,'IsActive':'true','Description':'Real HTTP CRUD','SpecsText':'RAM=8 GB'}
-r=admin.post(BASE+'/Admin/Edit',data=form,timeout=30);ck('Admin product create',r.status_code==200 and '/Admin/Products'in r.url,r.url)
+r=admin.post(BASE+'/Admin/Edit',data=form,timeout=30);ck('Admin product create',r.status_code==200 and '/Admin/ProductManager' in r.url,r.url)
 html=get(admin,'/Admin/Products?q=HTTP%20TEST').text;m=re.search(r'/Admin/Edit/(\d+)',html);pid=int(m.group(1))if m else 0
 if pid:
  r=get(admin,f'/Admin/Edit/{pid}');ver=re.search(r'name="RowVersion"[^>]*value="([^"]+)"',r.text).group(1);form.update({'Id':pid,'RowVersion':unescape(ver),'Name':'HTTP TEST Product Updated','__RequestVerificationToken':token(r.text)})
- r=admin.post(BASE+'/Admin/Edit',data=form,timeout=30);ck('Admin product edit',r.status_code==200 and '/Admin/Products'in r.url)
+ r=admin.post(BASE+'/Admin/Edit',data=form,timeout=30);ck('Admin product edit',r.status_code==200 and '/Admin/ProductManager' in r.url,r.url)
  r=get(admin,'/Admin/Products');r=admin.post(BASE+'/Admin/Hide',data={'__RequestVerificationToken':token(r.text),'id':pid},timeout=30);ck('Admin product soft delete',r.status_code==200 and get(admin,f'/Products/Details/{pid}').status_code==404)
 # Two HTTP clients race for seeded last unit (product 6). Both baskets loaded first.
 a=login('customer@techshop.local','Customer@123');b=login(email,password)
