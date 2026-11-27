@@ -146,7 +146,7 @@ dotnet build TechShop.sln
 dotnet test TechShop.UnitTests/TechShop.UnitTests.csproj
 dotnet run --project TechShop.Tests/TechShop.Tests.csproj
 ```
-Kết quả đã thực thi (cập nhật đợt tuần 3–4): **61 xUnit qua** (55 test cũ + 6 test mới cho nhập CSV/xuất Excel), **22 integration relational qua**, **57 kiểm tra HTTP qua**, **16 kiểm tra HTTP cho nhập CSV/xuất Excel qua**, **17 kiểm tra HTTP cho chức năng thêm sản phẩm qua**, **20 kiểm tra HTTP cho sửa/xoá ảnh và thông số qua**, **10 kiểm tra luồng đơn/doanh thu/đổi trả qua**. Build cuối: **0 lỗi**. Xem `Verification/KET_QUA_KIEM_THU.md`, `http_bulk_tests.py` và JSON chi tiết.
+Kết quả đã thực thi (cập nhật đợt tuần 6 — đo trên VPS, .NET SDK 8.0.428, CSDL SQLite sạch): **73 xUnit qua** (61 cũ + 12 test webhook), **22 integration relational qua**, **57 kiểm tra HTTP qua**, **16 kiểm tra HTTP cho nhập CSV/xuất Excel qua**, **17 kiểm tra HTTP cho chức năng thêm sản phẩm qua**, **20 kiểm tra HTTP cho sửa/xoá ảnh và thông số qua**, **23 kiểm tra HTTP cho trang quản lý và thêm mới qua**, **33 kiểm tra HTTP cho thanh toán chuyển khoản qua**, **32 kiểm tra HTTP cho webhook báo có qua**, **10 kiểm tra luồng đơn/doanh thu/đổi trả qua**. Tổng **271 kiểm tra tự động, 0 hỏng**. Build cuối: **0 lỗi**. Xem `Verification/KET_QUA_KIEM_THU.md`, `http_bulk_tests.py` và JSON chi tiết.
 
 Có bài thử SQL Server thật trong console suite:
 ```text
@@ -161,10 +161,12 @@ Trong `Documents/`:
 1. `Nhom1_DeCuong.docx` – Đề cương chi tiết đề tài.
 2. `Nhom1_KeHoach-8Tuan.docx` – Kế hoạch thực hiện 8 tuần.
 3. `Nhom1_SRS.docx` – Đặc tả yêu cầu phần mềm (SRS).
-4. `Nhom1_TaiLieuKyThuat_Tuan5.docx` – Tài liệu kỹ thuật đợt tuần 3–4.
-5. `Nhom1_BaoCaoTuan5.docx` – Báo cáo tiến độ tuần 3–4.
+4. `Nhom1_DacTaYeuCau_Tuan6.docx` – Đặc tả yêu cầu hệ thống (8 phần, 23 bảng; thêm FR-2.5…FR-2.7, BR-05…BR-08, UC-M3/M4).
+5. `Nhom1_TaiLieuKyThuat_Tuan6.docx` – Tài liệu kỹ thuật (15 mục, 29 bảng; phiên bản 1.2).
+6. `Nhom1_BaoCaoTuan6.docx` – Báo cáo tiến độ tuần 6 (13 bảng).
+7. `K24CNT1_Nhom1_TTCD_DoAn2_TechShop_BaoCaoTongHop.docx` – Báo cáo tổng hợp tuần 1–6 theo mẫu @FITNTU-PJ2 (~63 trang, 107 bảng, 17 hình).
 
-Đã dựng từ ba PDF mẫu; TNR13, A4, bảng và thông tin sinh viên. Đã cập nhật đủ 5 thành viên, trưởng nhóm Trần Phan Đức Anh và mức độ Trung bình. Chỉ số thứ tự nhóm và ngày thực hiện chưa được cung cấp nên vẫn chờ xác nhận. Kế hoạch là dự kiến, không ghi giả tiến độ. Đã kiểm cấu trúc DOCX/CRC và nội dung; **chưa render Word để xác nhận phân trang**.
+Đã dựng theo mẫu thầy cung cấp; TNR13, A4, bảng và thông tin sinh viên. Đã cập nhật đủ 6 thành viên, trưởng nhóm Trần Phan Đức Anh và mức độ Trung bình. Chỉ số thứ tự nhóm và ngày thực hiện chưa được cung cấp nên vẫn chờ xác nhận. Kế hoạch là dự kiến, không ghi giả tiến độ. Đã kiểm cấu trúc DOCX/CRC và nội dung; **chưa render Word để xác nhận phân trang**.
 
 ## 10. Phạm vi chưa hoàn tất kiểm chứng
 - SQL Server runtime/rowversion và backup/restore thật.
