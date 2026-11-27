@@ -58,6 +58,12 @@ Ngoài COD và VNPay, hệ thống hỗ trợ **chuyển khoản ngân hàng**:
 Cấu hình tài khoản nhận tiền trong `appsettings.json` mục `BankTransfer`
 (BankId theo mã ngân hàng VietQR: Vietcombank 970436, Techcombank 970407, MB 970422, ACB 970416...).
 
+### Tự động xác nhận chuyển khoản (webhook)
+Ngân hàng gọi `POST /api/bank/webhook` kèm header `X-Bank-Signature` (HMAC-SHA256).
+Hệ thống tách mã đơn `TSxxxxxx`, đối chiếu số tiền rồi tự xác nhận thanh toán.
+Cấu hình trong `appsettings.json` mục `BankWebhook` (`Enabled`, `Secret`, `AmountTolerance`, `AllowSimulator`).
+Trang đối soát: `/Admin/BankTransactions` (nhân viên xem nhật ký giao dịch; admin có form giả lập để demo).
+
 ### Trang Quản lý sản phẩm (/Admin/ProductManager)
 Trang quản trị dạng thẻ: 5 ô thống kê (tổng, đang bán, đang ẩn, sắp hết, hết hàng), lọc theo
 tên / danh mục / thương hiệu / trạng thái, mỗi thẻ có ảnh, giá và nút Sửa – Xem – Ẩn.

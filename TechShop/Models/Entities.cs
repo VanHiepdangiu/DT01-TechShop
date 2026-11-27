@@ -66,6 +66,19 @@ public class Order
 }
 public class OrderItem {public int Id{get;set;}public int OrderId{get;set;}public Order? Order{get;set;}public int ProductId{get;set;}public Product? Product{get;set;}public string ProductName{get;set;}="";public decimal UnitPrice{get;set;}public int Quantity{get;set;}[NotMapped]public decimal LineTotal=>UnitPrice*Quantity;}
 public class OrderHistory {public int Id{get;set;}public int OrderId{get;set;}public string Status{get;set;}="";public string Note{get;set;}="";public DateTime CreatedAt{get;set;}=DateTime.UtcNow;}
+/// <summary>Nhật ký giao dịch báo có từ ngân hàng (webhook). Dùng chống trùng và đối soát.</summary>
+public class BankTransactionLog
+{
+    public int Id { get; set; }
+    [Required, StringLength(64)] public string TransactionId { get; set; } = "";
+    [StringLength(500)] public string Content { get; set; } = "";
+    public decimal Amount { get; set; }
+    public DateTime TransactionAt { get; set; } = DateTime.UtcNow;
+    public int? OrderId { get; set; }
+    [StringLength(30)] public string Status { get; set; } = "unmatched";
+    [StringLength(300)] public string Note { get; set; } = "";
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
 public class ReturnRequest {public int Id{get;set;}public int OrderId{get;set;}public int UserId{get;set;}[Required,StringLength(500)]public string Reason{get;set;}="";public string Status{get;set;}="Requested";public DateTime CreatedAt{get;set;}=DateTime.UtcNow;}
 public static class OrderStates
 {

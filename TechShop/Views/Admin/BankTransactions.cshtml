@@ -1,0 +1,160 @@
+@model List<BankTransactionLog>
+@{
+    ViewData["Title"] = "Đối soát giao dịch ngân hàng";
+    var status = ViewBag.Status as string;
+    var enabled = (bool)ViewBag.WebhookEnabled;
+    var simulator = (bool)ViewBag.Simulator;
+    string Badge(string s) => s switch
+    {
+        "matched" => "Đã khớp đơn",
+        "unmatched" => "Không khớp đơn",
+        "duplicate" => "Trùng giao dịch",
+        "invalid" => "Không hợp lệ",
+        _ => s
+    };
+    string Cls(string s) => s switch
+    {
+        "matched" => "ok",
+        "unmatched" => "warn",
+        "duplicate" => "muted",
+        _ => "bad"
+    };
+}
+<div class="page-head">
+    <div>
+        <span class="eyebrow">QUẢN TRỊ · ĐỐI SOÁT</span>
+        <h1>Giao dịch ngân hàng</h1>
+    </div>
+    <a href="/Admin/ProductManager" class="btn btn-outline">← Quản lý sản phẩm</a>
+</div>
+
+<div class="alert @(enabled ? "alert-success" : "alert-warning")">
+    <strong>Webhook tự động xác nhận:</strong>
+    @(enabled ? "ĐANG BẬT" : "ĐANG TẮT") ·
+    Địa chỉ nhận: <code>POST /api/bank/webhook</code> ·
+    Chữ ký: <code>X-Bank-Signature</code> (HMAC-SHA256)
+    @if (simulator)
+    {
+        <span>· Trình giả lập: <strong>cho phép</strong> (chỉ dùng khi demo)</span>
+    }
+</div>
+
+<section class="panel mb-3">
+    <form method="get" action="/Admin/BankTransactions" class="filter-row" style="grid-template-columns:1fr auto auto">
+        <select name="status" class="form-control">
+            <option value="">Tất cả trạng thái</option>
+            <option value="matched" selected="@(status == "matched")">Đã khớp đơn</option>
+            <option value="unmatched" selected="@(status == "unmatched")">Không khớp đơn</option>
+            <option value="duplicate" selected="@(status == "duplicate")">Trùng giao dịch</option>
+            <option value="invalid" selected="@(status == "invalid")">Không hợp lệ</option>
+        </select>
+        <button class="btn btn-primary">Lọc</button>
+        <a href="/Admin/BankTransactions" class="btn btn-outline">Xoá lọc</a>
+    </form>
+</section>
+
+@if (simulator)
+{
+    <section class="panel mb-3">
+        <h2 class="h6">Giả lập ngân hàng báo có (dùng khi trình diễn)</h2>
+        <p class="small text-muted mb-2">
+            Nhập mã đơn đang chờ thanh toán bằng chuyển khoản; hệ thống sinh chữ ký và gọi vào webhook
+            như ngân hàng thật. Để trống số tiền thì dùng đúng tổng tiền của đơn.
+        </p>
+        <form id="sim-form" class="filter-row" style="grid-template-columns:1fr 1fr 1fr auto">
+            <input name="orderId" id="sim-order" class="form-control" type="number" min="1"
+                   placeholder="Mã đơn, ví dụ 12" required />
+            <input name="amount" id="sim-amount" class="form-control" type="number" min="0"
+                   placeholder="Số tiền (bỏ trống = đúng tổng đơn)" />
+            <input name="transactionId" id="sim-tid" class="form-control"
+                   placeholder="Mã giao dịch (bỏ trống = tự sinh)" />
+            <button class="btn btn-primary">Báo có</button>
+        </form>
+        <pre id="sim-out" class="small mt-2" style="display:none;white-space:pre-wrap;background:#f7f9fc;padding:.75rem;border-radius:8px"></pre>
+    </section>
+}
+
+@if (Model.Count == 0)
+{
+    <section class="panel">
+        <p class="text-muted mb-0">Chưa có giao dịch nào được ghi nhận.</p>
+    </section>
+}
+else
+{
+    <section class="panel table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Thời điểm</th>
+                    <th>Mã giao dịch</th>
+                    <th>Nội dung</th>
+                    <th>Số tiền</th>
+                    <th>Đơn</th>
+                    <th>Trạng thái</th>
+                    <th>Ghi chú</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Model)
+                {
+                    <tr>
+                        <td>@t.TransactionAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                        <td><code>@t.TransactionId</code></td>
+                        <td>@t.Content</td>
+                        <td>@t.Amount.ToString("N0") ₫</td>
+                        <td>
+                            @if (t.OrderId.HasValue)
+                            {
+                                <a href="/Orders/Details/@t.OrderId">#@t.OrderId</a>
+                            }
+                            else { <span class="text-muted">—</span> }
+                        </td>
+                        <td><span class="badge-status @Cls(t.Status)">@Badge(t.Status)</span></td>
+                        <td class="small">@t.Note</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+}
+
+<style>
+    .badge-status { display: inline-block; padding: .16rem .5rem; border-radius: 999px; font-size: .76rem; color: #fff; }
+    .badge-status.ok { background: #15803d; }
+    .badge-status.warn { background: #b45309; }
+    .badge-status.bad { background: #b91c1c; }
+    .badge-status.muted { background: #64748b; }
+</style>
+
+@section Scripts {
+<script>
+(function () {
+    var f = document.getElementById('sim-form');
+    if (!f) return;
+    f.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var out = document.getElementById('sim-out');
+        out.style.display = 'block';
+        out.textContent = 'Đang gửi...';
+        var params = new URLSearchParams();
+        params.set('orderId', document.getElementById('sim-order').value);
+        var amt = document.getElementById('sim-amount').value;
+        if (amt) params.set('amount', amt);
+        var tid = document.getElementById('sim-tid').value;
+        if (tid) params.set('transactionId', tid);
+        try {
+            const res = await fetch('/api/bank/simulate?' + params.toString(), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': $('meta[name=csrf-token]').attr('content') }
+            });
+            const data = await res.json();
+            out.textContent = 'HTTP ' + res.status + '\n' + JSON.stringify(data, null, 2);
+            if (res.ok && data.status === 'matched') setTimeout(function () { location.reload(); }, 1200);
+        } catch (err) {
+            out.textContent = 'Lỗi: ' + err;
+        }
+    });
+})();
+</script>
+}

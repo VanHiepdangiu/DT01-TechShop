@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using TechShop.Data;
 using TechShop.Models;
 using TechShop.Services;
 namespace TechShop.Controllers;
 [Authorize(Roles="Admin,Staff")]
-public class AdminController(ShopDbContext db,UserManager<ShopUser> users,IWebHostEnvironment env):Controller
+public class AdminController(ShopDbContext db,UserManager<ShopUser> users,IWebHostEnvironment env,IConfiguration config):Controller
 {
  public IActionResult Index()=>View();
  // FR-1.4: nhập sản phẩm hàng loạt từ CSV; báo lỗi theo từng dòng và chỉ lưu khi mọi dòng hợp lệ.
@@ -182,6 +183,17 @@ public class AdminController(ShopDbContext db,UserManager<ShopUser> users,IWebHo
   {TempData["Error"]="Đơn vừa thay đổi. Hãy tải lại trang.";return RedirectToAction("Details","Orders",new{id});}
   TempData["Message"]="Đã xác nhận thanh toán chuyển khoản.";
   return RedirectToAction("Details","Orders",new{id});
+ }
+ // Trang đối soát giao dịch ngân hàng (webhook báo có).
+ [Authorize(Roles="Admin,Staff")]
+ public async Task<IActionResult>BankTransactions(string? status)
+ {
+  var q=db.BankTransactions.AsNoTracking();
+  if(!string.IsNullOrWhiteSpace(status))q=q.Where(x=>x.Status==status);
+  ViewBag.Status=status;
+  ViewBag.WebhookEnabled=config.GetValue<bool?>("BankWebhook:Enabled")??false;
+  ViewBag.Simulator=config.GetValue<bool?>("BankWebhook:AllowSimulator")??false;
+  return View(await q.OrderByDescending(x=>x.Id).Take(200).ToListAsync());
  }
  [Authorize(Roles="Admin")]public async Task<IActionResult>Returns()=>View(await db.ReturnRequests.OrderByDescending(x=>x.CreatedAt).ToListAsync());
  async Task Setup(){ViewBag.Categories=await db.Categories.ToListAsync();ViewBag.Brands=await db.Brands.ToListAsync();}

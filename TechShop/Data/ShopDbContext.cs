@@ -10,6 +10,7 @@ public class ShopDbContext(DbContextOptions<ShopDbContext> options):IdentityDbCo
  public DbSet<Coupon>Coupons=>Set<Coupon>();public DbSet<Order>Orders=>Set<Order>();public DbSet<OrderItem>OrderItems=>Set<OrderItem>();
  public DbSet<ProductImage>ProductImages=>Set<ProductImage>();public DbSet<ProductSpec>ProductSpecs=>Set<ProductSpec>();public DbSet<Review>Reviews=>Set<Review>();
  public DbSet<Address>Addresses=>Set<Address>();public DbSet<ReturnRequest>ReturnRequests=>Set<ReturnRequest>();
+ public DbSet<BankTransactionLog>BankTransactions=>Set<BankTransactionLog>();
  protected override void OnModelCreating(ModelBuilder b)
  {
   base.OnModelCreating(b);
@@ -19,6 +20,7 @@ public class ShopDbContext(DbContextOptions<ShopDbContext> options):IdentityDbCo
   b.Entity<Coupon>().HasIndex(x=>x.Code).IsUnique();
   b.Entity<Order>().HasIndex(x=>x.IdempotencyKey).IsUnique();b.Entity<Order>().HasIndex(x=>new{x.UserId,x.CreatedAt});
   b.Entity<Review>().HasIndex(x=>new{x.ProductId,x.UserId}).IsUnique();b.Entity<ReturnRequest>().HasIndex(x=>x.OrderId).IsUnique();
+  b.Entity<BankTransactionLog>().HasIndex(x=>x.TransactionId).IsUnique();b.Entity<BankTransactionLog>().Property(x=>x.Amount).HasPrecision(18,2);
   b.Entity<OrderItem>().HasOne(x=>x.Product).WithMany().HasForeignKey(x=>x.ProductId).OnDelete(DeleteBehavior.Restrict);
   b.Entity<Order>().HasOne(x=>x.User).WithMany().HasForeignKey(x=>x.UserId).OnDelete(DeleteBehavior.Restrict);
   b.Entity<Review>().HasOne(x=>x.User).WithMany().HasForeignKey(x=>x.UserId).OnDelete(DeleteBehavior.Restrict);
