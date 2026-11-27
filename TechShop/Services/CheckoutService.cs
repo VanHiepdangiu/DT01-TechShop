@@ -18,7 +18,7 @@ public class CheckoutService(ShopDbContext db,ICheckoutObserver? observer=null)
  {
   if(c.Key==Guid.Empty||string.IsNullOrWhiteSpace(c.FullName)||c.FullName.Length>100||string.IsNullOrWhiteSpace(c.Address)||c.Address.Length>300||!Regex.IsMatch(c.Phone??"",@"^0\d{9}$"))return new(false,"Vui lòng nhập đủ họ tên, địa chỉ và số điện thoại 10 chữ số.");
   if(c.Lines.Count==0||c.Lines.Count>100||c.Lines.Any(x=>x.Quantity<1||x.Quantity>99))return new(false,"Giỏ hàng trống hoặc số lượng không hợp lệ (1–99).");
-  if(c.PaymentMethod!="COD"&&c.PaymentMethod!="VNPay")return new(false,"Phương thức thanh toán không hợp lệ.");
+  if(c.PaymentMethod!="COD"&&c.PaymentMethod!="VNPay"&&c.PaymentMethod!="BankTransfer")return new(false,"Phương thức thanh toán không hợp lệ.");
   var lines=c.Lines.GroupBy(x=>x.ProductId).Select(g=>new CartLine(g.Key,g.Sum(x=>x.Quantity))).OrderBy(x=>x.ProductId).ToList();
   if(lines.Any(x=>x.Quantity>99))return new(false,"Tổng số lượng mỗi sản phẩm không được quá 99.");
   var existing=await db.Orders.AsNoTracking().FirstOrDefaultAsync(x=>x.IdempotencyKey==c.Key);
@@ -48,7 +48,7 @@ public class CheckoutService(ShopDbContext db,ICheckoutObserver? observer=null)
    foreach(var l in lines)products.Single(x=>x.Id==l.ProductId).Stock-=l.Quantity;
    // EF UPDATE ... WHERE Id=@id AND RowVersion=@original; a loser throws, never retries blindly.
    await db.SaveChangesAsync();if(observer!=null)await observer.AfterStockSavedAsync();
-   var order=new Order{UserId=c.UserId,IdempotencyKey=c.Key,FullName=c.FullName.Trim(),Phone=c.Phone!,ShippingAddress=c.Address.Trim(),Subtotal=subtotal,Discount=discount,ShippingFee=shipping,Total=subtotal-discount+shipping,CouponCode=coupon?.Code,CouponId=coupon?.Id,PaymentMethod=c.PaymentMethod,Status=c.PaymentMethod=="VNPay"?OrderStates.PendingPayment:OrderStates.New};
+   var order=new Order{UserId=c.UserId,IdempotencyKey=c.Key,FullName=c.FullName.Trim(),Phone=c.Phone!,ShippingAddress=c.Address.Trim(),Subtotal=subtotal,Discount=discount,ShippingFee=shipping,Total=subtotal-discount+shipping,CouponCode=coupon?.Code,CouponId=coupon?.Id,PaymentMethod=c.PaymentMethod,Status=c.PaymentMethod=="COD"?OrderStates.New:OrderStates.PendingPayment};
    foreach(var l in lines){var p=products.Single(x=>x.Id==l.ProductId);order.Items.Add(new OrderItem{ProductId=p.Id,ProductName=p.Name,Quantity=l.Quantity,UnitPrice=p.EffectivePrice});}
    order.History.Add(new OrderHistory{Status=order.Status,Note="Đặt hàng; số tiền và tồn kho được xác định tại máy chủ."});db.Orders.Add(order);await db.SaveChangesAsync();await tx.CommitAsync();return new(true,"Đặt hàng thành công.",order.Id);
   }

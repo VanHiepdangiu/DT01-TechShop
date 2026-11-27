@@ -1,0 +1,148 @@
+@model Order
+@{
+    ViewData["Title"] = "Chuyển khoản thanh toán";
+    var enabled = (bool)ViewBag.Enabled;
+    var acc = (BankAccount)ViewBag.Account;
+    var qr = ViewBag.Qr as string;
+    var reference = (string)ViewBag.Reference;
+    var instructions = (string)ViewBag.Instructions;
+    var paid = Model.PaymentStatus == "Paid";
+    var waiting = Model.PaymentStatus == "AwaitingConfirmation";
+}
+<div class="page-head">
+    <div>
+        <span class="eyebrow">THANH TOÁN</span>
+        <h1>Chuyển khoản cho đơn @Model.Code</h1>
+    </div>
+    <a href="/Orders/Details/@Model.Id" class="btn btn-outline">← Chi tiết đơn</a>
+</div>
+
+@if (paid)
+{
+    <div class="alert alert-success">
+        Đơn hàng đã được xác nhận thanh toán. Cảm ơn bạn đã mua hàng tại TechShop.
+    </div>
+}
+else if (waiting)
+{
+    <div class="alert alert-info">
+        Hệ thống đã ghi nhận bạn báo chuyển khoản. Nhân viên đang đối chiếu sao kê và sẽ xác nhận trong thời gian sớm nhất.
+    </div>
+}
+
+@if (!enabled)
+{
+    <section class="panel">
+        <h2 class="h6">Chưa cấu hình tài khoản nhận tiền</h2>
+        <p class="text-muted">Quản trị viên cần khai báo thông tin tài khoản ngân hàng trong cấu hình trước khi dùng phương thức này.</p>
+    </section>
+}
+else
+{
+    <div class="checkout-grid">
+        <section class="panel">
+            <h2 class="h6 mb-3">1. Quét mã QR để chuyển khoản</h2>
+            @if (!string.IsNullOrEmpty(qr))
+            {
+                <div class="text-center mb-3">
+                    <img src="@qr" alt="Mã QR chuyển khoản cho đơn @Model.Code"
+                         style="max-width:260px;width:100%;border:1px solid #dbe3ec;border-radius:10px;padding:8px;background:#fff" />
+                    <p class="small text-muted mt-2 mb-0">
+                        Mở ứng dụng ngân hàng → chọn Quét mã QR → chụp mã này. Số tiền và nội dung đã được điền sẵn.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted small">Chưa cấu hình mã ngân hàng (BankId) nên không tạo được mã QR; vui lòng chuyển khoản thủ công theo mục 2.</p>
+            }
+
+            <h2 class="h6 mt-4 mb-2">2. Hoặc chuyển khoản thủ công</h2>
+            <table class="table">
+                <tbody>
+                    <tr><th style="width:38%">Ngân hàng</th><td>@acc.BankName</td></tr>
+                    <tr><th>Số tài khoản</th><td><strong style="font-size:1.05rem;letter-spacing:.03em">@acc.AccountNo</strong></td></tr>
+                    <tr><th>Chủ tài khoản</th><td>@acc.AccountName</td></tr>
+                    @if (!string.IsNullOrWhiteSpace(acc.Branch))
+                    {
+                        <tr><th>Chi nhánh</th><td>@acc.Branch</td></tr>
+                    }
+                    <tr><th>Số tiền</th><td><strong class="text-danger">@Model.Total.ToString("N0") ₫</strong></td></tr>
+                    <tr>
+                        <th>Nội dung chuyển khoản</th>
+                        <td>
+                            <strong id="ref-code" style="font-size:1.1rem;letter-spacing:.06em">@reference</strong>
+                            <button type="button" class="btn btn-outline btn-sm ms-2" id="copy-ref">Sao chép</button>
+                            <div class="small text-muted mt-1">
+                                Bắt buộc ghi đúng nội dung này để hệ thống đối chiếu được đơn hàng.
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <details class="mt-2">
+                <summary class="small text-muted">Xem lại toàn bộ nội dung chuyển khoản</summary>
+                <pre class="small mt-2" style="white-space:pre-wrap;background:#f7f9fc;padding:.75rem;border-radius:8px">@instructions</pre>
+            </details>
+        </section>
+
+        <aside class="panel summary">
+            <h2 class="h6">Đơn hàng @Model.Code</h2>
+            @foreach (var l in Model.Items)
+            {
+                <p>@l.ProductName × @l.Quantity <strong class="d-block">@l.LineTotal.ToString("N0") ₫</strong></p>
+            }
+            <hr />
+            <p>Tiền hàng: @Model.Subtotal.ToString("N0") ₫</p>
+            <p>Giảm giá: −@Model.Discount.ToString("N0") ₫</p>
+            <p>Vận chuyển: @Model.ShippingFee.ToString("N0") ₫</p>
+            <div class="price">@Model.Total.ToString("N0") ₫</div>
+
+            <hr />
+            <h2 class="h6">3. Báo đã chuyển khoản</h2>
+            <p class="small text-muted">
+                Sau khi chuyển tiền, bấm nút bên dưới để nhân viên đối chiếu sao kê và xác nhận đơn.
+                Đơn sẽ chuyển sang trạng thái “Mới” ngay khi tiền được xác nhận.
+            </p>
+            <form action="/Orders/ReportTransfer" method="post">
+                @Html.AntiForgeryToken()
+                <input name="id" type="hidden" value="@Model.Id" />
+                <label class="small">Mã giao dịch ngân hàng (nếu có)
+                    <input name="note" class="form-control" maxlength="200" placeholder="Ví dụ FT26112345678" />
+                </label>
+                <button class="btn btn-primary w-100 mt-2" @(paid ? "disabled" : "")>
+                    @(paid ? "Đã thanh toán" : "Tôi đã chuyển khoản")
+                </button>
+            </form>
+            <p class="small text-muted mt-3 mb-0">
+                Lưu ý: đơn hàng chỉ được xử lý sau khi nhân viên đối chiếu được khoản tiền trong sao kê.
+                Nếu sau 24 giờ chưa thấy xác nhận, vui lòng liên hệ cửa hàng kèm mã đơn @Model.Code.
+            </p>
+        </aside>
+    </div>
+}
+
+@section Scripts {
+<script>
+(function () {
+    var btn = document.getElementById('copy-ref');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+        var text = document.getElementById('ref-code').textContent.trim();
+        var done = function () {
+            btn.textContent = 'Đã sao chép';
+            setTimeout(function () { btn.textContent = 'Sao chép'; }, 1800);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done, fallback);
+        } else { fallback(); }
+        function fallback() {
+            var t = document.createElement('textarea');
+            t.value = text; document.body.appendChild(t); t.select();
+            try { document.execCommand('copy'); done(); } catch (e) { alert('Nội dung: ' + text); }
+            document.body.removeChild(t);
+        }
+    });
+})();
+</script>
+}

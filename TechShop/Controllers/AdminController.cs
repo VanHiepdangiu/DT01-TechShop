@@ -162,6 +162,27 @@ public class AdminController(ShopDbContext db,UserManager<ShopUser> users,IWebHo
  [Authorize(Roles="Admin"),HttpPost,ValidateAntiForgeryToken]public async Task<IActionResult>Coupon(string code,int percent,int limit,DateTime expired){if(string.IsNullOrWhiteSpace(code)||code.Length>30||percent<1||percent>100||limit<1||expired<=DateTime.UtcNow)return BadRequest();db.Coupons.Add(new Coupon{Code=code.Trim().ToUpperInvariant(),DiscountPercent=percent,UsageLimit=limit,ExpiredAt=expired});try{await db.SaveChangesAsync();}catch(DbUpdateException){TempData["Error"]="Mã đã tồn tại.";}return RedirectToAction(nameof(Settings));}
  [Authorize(Roles="Admin")]public async Task<IActionResult>Users(){var list=await db.Users.OrderBy(x=>x.Email).ToListAsync();var roles=new Dictionary<int,string>();foreach(var u in list)roles[u.Id]=string.Join(", ",await users.GetRolesAsync(u));ViewBag.Roles=roles;return View(list);}
  [Authorize(Roles="Admin"),HttpPost,ValidateAntiForgeryToken]public async Task<IActionResult>Role(int id,string role){if(!new[]{"Admin","Staff","Customer"}.Contains(role)||id==User.UserId())return BadRequest();var u=await users.FindByIdAsync(id.ToString());if(u==null)return NotFound();await users.RemoveFromRolesAsync(u,await users.GetRolesAsync(u));await users.AddToRoleAsync(u,role);await users.UpdateSecurityStampAsync(u);return RedirectToAction(nameof(Users));}
+ // Nhân viên/kế toán xác nhận đã nhận tiền chuyển khoản sau khi đối chiếu sao kê.
+ [Authorize(Roles="Admin,Staff"),HttpPost,ValidateAntiForgeryToken]
+ public async Task<IActionResult>ConfirmTransfer(int id,string? note)
+ {
+  var o=await db.Orders.Include(x=>x.History).SingleOrDefaultAsync(x=>x.Id==id);
+  if(o==null)return NotFound();
+  if(o.PaymentMethod!="BankTransfer")
+  {TempData["Error"]="Đơn này không dùng phương thức chuyển khoản.";return RedirectToAction("Details","Orders",new{id});}
+  if(o.PaymentStatus=="Paid")
+  {TempData["Message"]="Đơn đã được xác nhận thanh toán trước đó.";return RedirectToAction("Details","Orders",new{id});}
+  o.PaymentStatus="Paid";
+  o.PaymentTransactionId="BT"+DateTime.UtcNow.ToString("yyMMddHHmmss");
+  if(o.Status==OrderStates.PendingPayment)o.Status=OrderStates.New;
+  var extra=string.IsNullOrWhiteSpace(note)?"":" Mã giao dịch sao kê: "+note.Trim();
+  o.History.Add(new OrderHistory{Status=o.Status,Note=$"Tài khoản #{User.UserId()}: xác nhận đã nhận tiền chuyển khoản.{extra}"});
+  try{await db.SaveChangesAsync();}
+  catch(DbUpdateConcurrencyException)
+  {TempData["Error"]="Đơn vừa thay đổi. Hãy tải lại trang.";return RedirectToAction("Details","Orders",new{id});}
+  TempData["Message"]="Đã xác nhận thanh toán chuyển khoản.";
+  return RedirectToAction("Details","Orders",new{id});
+ }
  [Authorize(Roles="Admin")]public async Task<IActionResult>Returns()=>View(await db.ReturnRequests.OrderByDescending(x=>x.CreatedAt).ToListAsync());
  async Task Setup(){ViewBag.Categories=await db.Categories.ToListAsync();ViewBag.Brands=await db.Brands.ToListAsync();}
 }

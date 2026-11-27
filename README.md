@@ -46,6 +46,18 @@ Website học tập ASP.NET Core MVC (.NET 8), ASP.NET Core Identity, EF Core Co
 4. Bấm **Thêm sản phẩm** → hệ thống lưu và quay về danh sách, sản phẩm xuất hiện ngay trên trang khách hàng.
 5. Muốn thêm hàng loạt: dùng **Nhập CSV** ở trang Quản lý sản phẩm (tối đa 500 dòng/lần).
 
+### Thanh toán chuyển khoản ngân hàng
+Ngoài COD và VNPay, hệ thống hỗ trợ **chuyển khoản ngân hàng**:
+1. Khách chọn "Chuyển khoản ngân hàng" ở trang đặt hàng.
+2. Sau khi đặt, hệ thống mở trang `/Orders/BankTransfer/{id}` hiển thị **mã QR VietQR**
+   (số tiền và nội dung điền sẵn), thông tin tài khoản và **mã đối chiếu dạng TS000123**.
+3. Khách chuyển tiền ghi đúng nội dung, rồi bấm **"Tôi đã chuyển khoản"** (có thể nhập mã giao dịch).
+4. Nhân viên mở đơn, đối chiếu sao kê rồi bấm **"Xác nhận đã nhận tiền chuyển khoản"**;
+   đơn chuyển từ *Chờ thanh toán* sang *Mới* và được xử lý tiếp.
+
+Cấu hình tài khoản nhận tiền trong `appsettings.json` mục `BankTransfer`
+(BankId theo mã ngân hàng VietQR: Vietcombank 970436, Techcombank 970407, MB 970422, ACB 970416...).
+
 ### Trang Quản lý sản phẩm (/Admin/ProductManager)
 Trang quản trị dạng thẻ: 5 ô thống kê (tổng, đang bán, đang ẩn, sắp hết, hết hàng), lọc theo
 tên / danh mục / thương hiệu / trạng thái, mỗi thẻ có ảnh, giá và nút Sửa – Xem – Ẩn.
